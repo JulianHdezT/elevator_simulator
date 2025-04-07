@@ -1,0 +1,66 @@
+﻿@page "/"
+@inject ElevatorService ElevatorService
+
+<h1>🚪 Elevator Simulation</h1>
+
+<div style="display:flex; gap:2rem;">
+    <div class="elevator-shaft">
+        <div class="elevator-box" style="top:@ElevatorTopOffsetPx()px;">
+            @Elevator.CurrentFloor
+        </div>
+        @for (int i = 5; i >= 1; i--)
+        {
+            <div class="floor">
+                <span>Floor @i</span>
+            </div>
+        }
+    </div>
+
+    <div>
+        <p><strong>Current Floor:</strong> @Elevator.CurrentFloor</p>
+        <p><strong>Direction:</strong> @Elevator.MovementDirection</p>
+        <p><strong>Doors:</strong> @(Elevator.DoorsOpen ? "🚪 Open" : "🚪 Closed")</p>
+
+        <h3>Internal Panel</h3>
+        @for (int i = 5; i >= 1; i--)
+        {
+            <button class="btn btn-primary m-1" @onclick="() => RequestFloor(i)">Go to Floor @i</button>
+        }
+
+        <h3>External Calls</h3>
+        @for (int i = 1; i <= 5; i++)
+        {
+            <div class="mb-2">
+                Floor @i:
+                @if (i == 1)
+                {
+                    <button class="btn btn-outline-success btn-sm" @onclick="() => CallElevator(i, Direction.Up)">⬆️ Call</button>
+                }
+                else if (i == 5)
+                {
+                    <button class="btn btn-outline-danger btn-sm" @onclick="() => CallElevator(i, Direction.Down)">⬇️ Call</button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-success btn-sm" @onclick="() => CallElevator(i, Direction.Up)">⬆️</button>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="() => CallElevator(i, Direction.Down)">⬇️</button>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private Elevator Elevator => ElevatorService.Elevator;
+
+    protected override void OnInitialized()
+    {
+        ElevatorService.OnChange += StateHasChanged;
+    }
+
+    void RequestFloor(int floor) => ElevatorService.RequestFloor(floor);
+    void CallElevator(int floor, Direction dir) => ElevatorService.CallElevator(floor, dir);
+    int ElevatorTopOffsetPx() => (5 - Elevator.CurrentFloor) * 100 + 10;
+
+    public void Dispose() => ElevatorService.OnChange -= StateHasChanged;
+}
